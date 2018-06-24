@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    项目详情
+{% endblock %}
+
+{% block css %}
+    <link href="/static/css/detal.css" rel="stylesheet" />
+{% endblock %}
+
+{% block nav %}
+    <ul class="nav" id="main-menu">
+        <li>
+            <a href="{% url 'notice_list' %}"><i class="fa fa-desktop"></i>公告</a>
+        </li>
+        <li>
+            <a class="active-menu" href="{% url 'project_list' %}"><i class="fa fa-list "></i>我的项目</a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}"><i class="fa fa-list "></i>注销</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line">项目详情</h1>
+            <h1 class="page-subhead-line">
+                <strong>项目申报书：</strong>
+                <a class="btn btn-success" href="{{ MEDIA_URL }}{{ project.p_application }}" >点击下载</a>
+                <a class="btn btn-info" target="_blank" href="/static/pdfjs/web/viewer.html?file={{ MEDIA_URL }}{{ project.p_application }}">在线预览</a>
+                &nbsp;&nbsp;&nbsp;&nbsp;
+                {% if project.p_middle %}
+                <strong>中期报告：</strong>
+                <a class="btn btn-success" href="{{ MEDIA_URL }}{{ project.p_middle }}" >点击下载</a>
+                <a class="btn btn-info" target="_blank" href="/static/pdfjs/web/viewer.html?file={{ MEDIA_URL }}{{ project.p_middle }}">在线预览</a>
+                {% endif %}
+
+            </h1>
+        </div>
+    </div>
+    <!-- /. ROW  -->
+    <div class="row">
+        <div class="col-md-12">
+            <table border="1" cellpadding="10" cellspacing="10" class="table">
+                <tr>
+                    <th>计划项目名称</th>
+                    <td colspan="4">{{ project.p_name }}</td>
+                    <th>类型</th>
+                    <td>{{ project.get_p_type_display }}</td>
+                </tr>
+                <tr>
+                    <th rowspan="3">计划项目负责人</th>
+                    <th>姓名</th>
+                    <td>{{ project.d_name }}</td>
+                    <th>性别</th>
+                    <td>{{ project.get_d_gender_display }}</td>
+                    <th>邮箱</th>
+                    <td>{{ project.d_email }}</td>
+                </tr>
+                <tr>
+                    <th>学号</th>
+                    <td>{{ project.d_student_id }}</td>
+                    <th>所属学院</th>
+                    <td>{{ project.get_d_college_display }}</td>
+                    <th>联系电话</th>
+                    <td>{{ project.d_phone }}</td>
+
+                </tr>
+                <tr>
+                    <th>专业</th>
+                    <td>{{ project.d_major }}</td>
+                    <th>QQ</th>
+                    <td>{{ project.d_qq }}</td>
+                </tr>
+                <tr>
+                    <th rowspan="3">指导老师情况</th>
+                    <th>姓名</th>
+                    <td>{{ project.t_name }}</td>
+                    <th>性别</th>
+                    <td>{{ project.get_t_gender_display }}</td>
+                    <th>民族</th>
+                    <td>{{ project.t_nation }}</td>
+
+                </tr>
+                <tr>
+                    <th>邮箱</th>
+                    <td>{{ project.t_email }}</td>
+                    <th>手机号码</th>
+                    <td>{{ project.t_phone }}</td>
+                    <th>专业/职称/职务</th>
+                    <td>{{ project.t_title }}</td>
+                </tr>
+                <tr>
+                    <th>生日</th>
+                    <td>{{ project.t_birthday }}</td>
+                </tr>
+                {% if members %}
+                <tr>
+                    <th rowspan="{{ members.count | add:'1' }}">计划项目组成员</th>
+                    <th>姓名</th>
+                    <th>性别</th>
+                    <th>学号</th>
+                    <th>所属学院</th>
+                    <th>专业</th>
+                    <th>年级</th>
+                    <th>联系电话</th>
+                </tr>
+                {% for member in members %}
+                <tr>
+                    <td>{{ member.m_name }}</td>
+                    <td>{{ member.get_m_sex_display }}</td>
+                    <td>{{ member.m_student_id }}</td>
+                    <td>{{ member.get_m_college_display }}</td>
+                    <td>{{ member.m_major }}</td>
+                    <td>{{ member.m_grade }}</td>
+                    <td>{{ member.m_phone }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+                <tr>
+                    <th>审核意见</th>
+                    <td colspan="3">
+                        {% if project.p_comment %}
+                        {{ project.p_comment }}
+                        {% else %}
+                            无
+                        {% endif %}
+                    </td>
+                    <th>专家意见</th>
+                    <td colspan="3">
+                        {% if project.e_comment %}
+                        {{ project.e_comment }}
+                        {% else %}
+                            无
+                        {% endif %}
+                    </td>
+                </tr>
+                {% if project.expert_group.name %}
+                <tr>
+                    <th rowspan="{{ project.expert_group.userprofile_set.count }}">所属专家组</th>
+                    <td rowspan="{{ project.expert_group.userprofile_set.count }}" colspan="3">
+                        {{ project.expert_group.name }}
+                    </td>
+                </tr>
+                {% for score in scores.all %}
+                <tr>
+                    <th>专家姓名</th>
+                    <td>{{ score.expert.username }}</td>
+                    <th>评分</th>
+                    <td>{{ score.score }}</td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block css %}
+    <link href="/static/css/bootstrap-table.min.css" rel="stylesheet" />
+    <link href="/static/css/datepicker.css" type="text/css" rel="stylesheet" />
+{% endblock %}
+
+{% block title %}
+    专家列表
+{% endblock %}
+
+{% block nav %}
+    <ul class="nav" id="main-menu">
+        <li>
+            <a href="{% url 'project_list' %}"><i class="fa fa-list "></i>项目列表</a>
+        </li>
+        <li>
+            <a class="active-menu" href="{% url 'export_list' %}"><i class="fa fa-list "></i>专家列表</a>
+        </li>
+        <li>
+            <a href="{% url 'export_group_list' %}"><i class="fa fa-list "></i>专家组列表</a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}"><i class="fa fa-list "></i>注销</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line">专家列表</h1>
+        </div>
+    </div>
+    <!-- /. ROW  -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <div id="toolbar">
+
+                </div>
+                <table id="listTable">
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/bootstrap-table.min.js"></script>
+    <script src="/static/js/bootstrap-table-zh-CN.js"></script>
+
+    <script src="/static/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript">
+        $('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true,
+            language:"zh-CN",
+            format:"yyyy-mm-dd"
+        });
+
+        $(function () {
+            //1.初始化Table
+            var oTable = new TableInit();
+            oTable.Init();
+        });
+
+        var TableInit = function () {
+            var oTableInit = new Object();
+            //初始化Table
+            oTableInit.Init = function () {
+                $('#listTable').bootstrapTable({
+               url: '/user/export/list/get',         //请求后台的URL（*）
+               method: 'get',                      //请求方式（*）
+               toolbar: '#toolbar',                //工具按钮用哪个容器
+               striped: true,                      //是否显示行间隔色
+               cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+               pagination: true,                   //是否显示分页（*）
+               sortable: true,                     //是否启用排序
+               sortOrder: "asc",                   //排序方式
+               queryParams: oTableInit.queryParams,//传递参数（*）
+               sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+               pageNumber: 1,                       //初始化加载第一页，默认第一页
+               pageSize: 10,                       //每页的记录行数（*）
+               pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+               search: false,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+               contentType: "application/x-www-form-urlencoded",
+               strictSearch: true,
+               showColumns: true,                  //是否显示所有的列
+               showRefresh: false,                  //是否显示刷新按钮
+               minimumCountColumns: 2,             //最少允许的列数
+               clickToSelect: true,                //是否启用点击选中行
+               //height: 900,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+               uniqueId: "no",                     //每一行的唯一标识，一般为主键列
+               //showToggle: true,                    //是否显示详细视图和列表视图的切换按钮
+               cardView: false,                    //是否显示详细视图
+               detailView: false,                   //是否显示父子表
+               columns: [
+                   {
+                        field: 'state',
+                        checkbox: 'true'
+                    },
+                   {
+                       field: 'username',
+                       title: '专家姓名'
+                   }, {
+                       field: 'college',
+                       title: '所属学院'
+                   }, {
+                       field: 'expert_group',
+                       title: '所属专家组'
+                   },{
+                       field: 'operate',
+                       title: '操作',
+                       formatter: operateFormatter //自定义方法，添加操作按钮
+                   }
+               ]
+            });
+
+        };
+         //得到查询的参数
+       oTableInit.queryParams = function (params) {
+           var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+               limit: params.limit,   //页面大小
+               offset:params.offset,
+               college:$('#college option:selected').val()
+           };
+           return temp;
+       };
+       return oTableInit;
+   };
+   function operateFormatter(value, row, index) {//赋予的参数
+       var operate = [
+       ];
+       return operate.join('');
+   }
+   $("#search_button").click(function () {
+       $('#listTable').bootstrapTable('refresh');
+   })
+    </script>
+{% endblock %}

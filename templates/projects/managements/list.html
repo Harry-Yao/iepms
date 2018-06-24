@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block css %}
+    <link href="/static/css/bootstrap-table.min.css" rel="stylesheet" />
+    <link href="/static/css/datepicker.css" type="text/css" rel="stylesheet" />
+    <link rel="stylesheet" href="/static/css/select2.min.css">
+    <link rel="stylesheet" href="/static/css/select2-plugin.css">
+{% endblock %}
+
+{% block title %}
+    项目列表
+{% endblock %}
+
+{% block nav %}
+    <ul class="nav" id="main-menu">
+        <li>
+            <a class="active-menu" href="{% url 'project_list' %}"><i class="fa fa-list "></i>项目评审</a>
+        </li>
+        <li>
+            <a href="{% url 'export_list' %}"><i class="fa fa-list "></i>专家管理</a>
+        </li>
+        <li>
+            <a href="{% url 'export_group_list' %}"><i class="fa fa-list "></i>专家组管理</a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}"><i class="fa fa-list "></i>注销</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line">项目列表</h1>
+        </div>
+    </div>
+    <!-- /. ROW  -->
+    <div class="row">
+        <div class="modal fade" id="addModal" tabindex="-1" role="dialog" aria-labelledby="addModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h4 class="modal-title" id="addModalLabel">关联专家组</h4>
+                    </div>
+                    <form>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>选择专家组:</label>
+                                <select id="groups" class="form-control" style="display: inline;width: auto;">
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-info" id="linkGroup">关联</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <div id="toolbar">
+                    <label>项目状态：</label>
+                    <select id="status" class="form-control" style="display: inline;width: auto;">
+                        <option value="" selected>所有项目</option>
+                        <option value="0">待审核</option>
+                        <option value="1">已审核</option>
+                        <option value="8">延期审核中</option>
+                        <option value="9">已延期</option>
+                    </select>
+                    &nbsp;&nbsp;
+                    <label>项目所属：</label>
+                    <input id="notice" class="form-control" placeholder="输入关键词" style="display: inline;width: auto;" type="text"/>
+
+                    <button id="search_button" class="btn btn-primary">查询</button>
+
+                    <a id="mid_button" href="{% url 'start_mid' %}" class="btn btn-warning">启动中期检查</a>
+                </div>
+                <div id="toolbar" class="btn-group">
+                    <button id="btn_link" type="button" class="btn btn-default">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"> </span>关联专家组
+                    </button>
+                </div>
+                <table id="listTable">
+                </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/bootstrap-table.min.js"></script>
+    <script src="/static/js/bootstrap-table-zh-CN.js"></script>
+    <script src="/static/js/select2.min.js"></script>
+    <script src="/static/js/select2-zh-CN.js"></script>
+    <script src="/static/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript">
+        $('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true,
+            language:"zh-CN",
+            format:"yyyy-mm-dd"
+        });
+
+        $(function () {
+            //1.初始化Table
+            var oTable = new TableInit();
+            oTable.Init();
+        });
+
+        var TableInit = function () {
+            var oTableInit = new Object();
+            //初始化Table
+            oTableInit.Init = function () {
+                $('#listTable').bootstrapTable({
+               url: '/project/list/get',         //请求后台的URL（*）
+               method: 'get',                      //请求方式（*）
+               toolbar: '#toolbar',                //工具按钮用哪个容器
+               striped: true,                      //是否显示行间隔色
+               cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
+               pagination: true,                   //是否显示分页（*）
+               sortable: false,                     //是否启用排序
+               sortOrder: "asc",                   //排序方式
+               queryParams: oTableInit.queryParams,//传递参数（*）
+               sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
+               pageNumber: 1,                       //初始化加载第一页，默认第一页
+               pageSize: 10,                       //每页的记录行数（*）
+               pageList: [10, 25, 50, 100],        //可供选择的每页的行数（*）
+               //search: true,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
+               contentType: "application/x-www-form-urlencoded",
+               strictSearch: true,
+               //showColumns: true,                  //是否显示所有的列
+               //showRefresh: true,                  //是否显示刷新按钮
+               minimumCountColumns: 2,             //最少允许的列数
+               clickToSelect: true,                //是否启用点击选中行
+               //height: 900,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
+               uniqueId: "no",                     //每一行的唯一标识，一般为主键列
+               //showToggle: true,                    //是否显示详细视图和列表视图的切换按钮
+               cardView: false,                    //是否显示详细视图
+               detailView: false,                   //是否显示父子表
+               columns: [
+               {
+                    field: 'state',
+                    checkbox: 'true'
+                },{
+                   field: 'name',
+                   title: '项目名称'
+               }, {
+                   field: 'type',
+                   title: '项目类型',
+                   sortable: true
+               }, {
+                   field: 'notice',
+                   title: '所属',
+                   sortable: true
+               },{
+                   field: 'status',
+                   title: '状态',
+                   sortable: true
+               },{
+                   field: 'expert_group',
+                   title: '所属专家组',
+                   sortable: true
+               },{
+                   field: 'score',
+                   title: '平均分',
+                   sortable: true
+               },{
+                   field: 'deadline',
+                   title: '验收时间'
+               },{
+                   field: 'operate',
+                   title: '操作',
+                   formatter: operateFormatter //自定义方法，添加操作按钮
+               }
+               ]
+{#               rowStyle: function (row, index) {#}
+{#                    var classesArr = ['success', 'info'];#}
+{#                    var strclass = "";#}
+{#                    if (index % 2 === 0) {//偶数行#}
+{#                       strclass = classesArr[0];#}
+{#                    } else {//奇数行#}
+{#                       strclass = classesArr[1];#}
+{#                    }#}
+{#                    return { classes: strclass };#}
+{#                },//隔行变色#}
+            });
+
+        };
+         //得到查询的参数
+       oTableInit.queryParams = function (params) {
+           var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
+               limit: params.limit,   //页面大小
+               offset:params.offset,
+               status:$('#status option:selected').val(),
+               notice:$('#notice').val()
+           };
+           return temp;
+       };
+       return oTableInit;
+   };
+    function operateFormatter(value, row, index) {//赋予的参数
+       var operate = [
+           '<a class="btn btn-primary" title="详情" href="{% url 'project_detal' %}?project_id='+ row["id"] +'">详情</a>&nbsp;&nbsp;&nbsp;'
+       ];
+       if(row["status"] == "中期检查"){
+           operate.push('<a class="btn btn-primary" title="中期检查" href="{% url 'approval' %}?project_id='+ row["id"] +'">中期检查</a>&nbsp;&nbsp;&nbsp;');
+       }
+       if(row["status"] == "待审核" || row["status"] == "驳回修改" ){
+            operate.push('<a class="btn btn-info" title="修改" href="{% url 'approval' %}?project_id='+ row["id"] +'">审核</a>&nbsp;&nbsp;&nbsp;');
+       }
+       if(row["deadline"] != " - " && row["status"] != "延期审核中"){
+           operate.push('<a class="btn btn-warning" title="申请延期" href="{% url 'delay' %}?project_id='+ row["id"] +'">申请延期</a>&nbsp;&nbsp;&nbsp;');
+       }
+       return operate.join('');
+   }
+
+   var returnData = [];
+    $.ajax({
+        type:"post",
+        url:"/user/export/group/list/get",
+        dataType:"json",
+        async: false,
+        data:{
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success:function(data){
+            returnData = data;
+        }
+    });
+
+    $("#groups").select2({
+         data: returnData["results"],
+         placeholder: "请选择专家组成员",
+         language : "zh-CN",
+    });
+
+   $("#btn_link").click(function () {
+       var rows = $("#listTable").bootstrapTable('getSelections');
+       if(rows.length==0){
+           alert("请勾选要关联的项目");
+           return;
+       }
+       $('#addModal').modal('show');
+   });
+
+   $("#linkGroup").click(function () {
+       var msg = "是否确认关联？！";
+       var rows = $("#listTable").bootstrapTable('getSelections');
+       var group_id = $("#groups").select2("val");
+       var ids = '';
+       for (var i = 0; i < rows.length; i++) {
+           ids += rows[i]['id'] + ",";
+       }
+       ids = ids.substring(0, ids.length - 1);
+       if(confirm(msg)==true){
+           $.ajax({
+               url: '/project/link',
+               type: 'post',
+               data:{
+                   csrfmiddlewaretoken: '{{ csrf_token }}',
+                   ids: ids,
+                   group_id: group_id
+               },
+               success: function (data) {
+                   $('#listTable').bootstrapTable('refresh');
+               }
+           })
+       }
+   });
+
+   $("#search_button").click(function () {
+       $('#listTable').bootstrapTable('refresh');
+   })
+    </script>
+{% endblock %}

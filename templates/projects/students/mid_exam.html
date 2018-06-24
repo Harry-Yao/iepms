@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    中期检查
+{% endblock %}
+
+{% block css %}
+    <link href="/static/css/fileinput.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block nav %}
+    <ul class="nav" id="main-menu">
+        <li>
+            <a href="{% url 'notice_list' %}"><i class="fa fa-desktop"></i>公告</a>
+        </li>
+        <li>
+            <a class="active-menu" href="{% url 'project_list' %}"><i class="fa fa-list "></i>我的项目</a>
+        </li>
+        <li>
+            <a href="{% url 'logout' %}"><i class="fa fa-list "></i>注销</a>
+        </li>
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line">中期检查</h1>
+            <h1 class="page-subhead-line">请提交中期检查报告. </h1>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 col-sm-12 col-xs-12">
+           <div class="panel panel-info">
+                <div class="panel-heading">
+                   上传中期检查报告：（只限PDF格式）
+                </div>
+                <div class="panel-body">
+                    <form role="form" method="post" enctype="multipart/form-data" action="{% url 'mid_exam' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input id="p_id" style="display: none;" type="text" name="id" value="{{ project.id }}"/>
+                            <input id="p_status" style="display: none;" type="text" name="p_status" value=11/>
+                            <input id="p_middle" type="file" class="file-loading" name="p_middle" required />
+                        </div>
+                        <button type="submit" class="btn btn-info" >提交</button>
+                    </form>
+                </div>
+           </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block js %}
+    <script src="/static/js/fileinput.min.js"></script>
+    <script src="/static/js/fileinput-zh.js"></script>
+    <script type="text/javascript">
+
+        $(function () {
+            //0.初始化fileinput
+            var oFileInput = new FileInput();
+            oFileInput.Init("p_middle", "{% url 'mid_exam'%}");
+        });
+
+        //初始化fileinput
+        var FileInput = function () {
+            var oFile = new Object();
+
+            //初始化fileinput控件（第一次初始化）
+            oFile.Init = function(ctrlName, uploadUrl) {
+            var control = $('#' + ctrlName);
+
+            //初始化上传控件的样式
+            control.fileinput({
+                language: 'zh', //设置语言
+                //uploadUrl: uploadUrl, //上传的地址
+                allowedFileExtensions: ['pdf'],//接收的文件后缀
+                showUpload: false, //是否显示上传按钮
+                showCaption: false,//是否显示标题
+                browseClass: "btn btn-primary", //按钮样式
+                dropZoneEnabled: false,//是否显示拖拽区域
+                //minImageWidth: 50, //图片的最小宽度
+                //minImageHeight: 50,//图片的最小高度
+                //maxImageWidth: 1000,//图片的最大宽度
+                //maxImageHeight: 1000,//图片的最大高度
+                //maxFileSize: 0,//单位为kb，如果为0表示不限制文件大小
+                //minFileCount: 0,
+                maxFileCount: 1, //表示允许同时上传的最大文件个数
+                enctype: 'multipart/form-data',
+                validateInitialCount:true,
+                previewFileIcon: "<i class='glyphicon glyphicon-king'></i>",
+                msgFilesTooMany: "只允许上传一份中期检查报告！"
+            });
+
+            //导入文件上传完成之后的事件
+            $("#p_middle").on("fileuploaded", function (event, data, previewId, index) {
+                $("#myModal").modal("hide");
+                var data = data.response.lstOrderImport;
+                if (data == undefined) {
+                    toastr.error('文件格式类型不正确,请上传pdf格式的文件！');
+                    return;
+                }
+                //1.初始化表格
+                var oTable = new TableInit();
+                oTable.Init(data);
+                $("#div_startimport").show();
+            });
+        }
+            return oFile;
+        };
+    </script>
+{% endblock %}
